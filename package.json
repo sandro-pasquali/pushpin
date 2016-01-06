@@ -1,6 +1,6 @@
 {
   "name": "pushpin",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Harness TAP and report parse events",
   "engines": {
     "node": ">=4"

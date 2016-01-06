@@ -1,7 +1,7 @@
 "use strict";
 
 var util = require('util');
-var duplexer = require('duplexer');
+var duplexer = require('duplexer2');
 var out = require('through2')();
 var parser = require('tap-out')();
 var _ = require('lodash');
