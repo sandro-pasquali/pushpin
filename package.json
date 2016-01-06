@@ -1,0 +1,33 @@
+{
+  "name": "pushpin",
+  "version": "1.0.0",
+  "description": "Harness TAP and report parse events",
+  "engines": {
+    "node": ">=4"
+  },
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Sandro Pasquali <spasquali@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "duplexer2": "^0.1.4",
+    "lodash": "^3.10.1",
+    "tap-out": "^1.4.1",
+    "through2": "^2.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sandro-pasquali/pushpin.git"
+  },
+  "keywords": [
+    "TAP",
+    "testing",
+    "promises"
+  ],
+  "bugs": {
+    "url": "https://github.com/sandro-pasquali/pushpin/issues"
+  },
+  "homepage": "https://github.com/sandro-pasquali/pushpin"
+}
