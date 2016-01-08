@@ -19,10 +19,9 @@ var events = [
 	//
 	'assert',
 
-	// type - this will always be result
-	// name - the name of the result
-	// raw - the raw output before it was parsed
-	// count - the number of tests related to this result
+	// total : total number of tests planned
+	// pass : total passed
+	// fail : total failed
 	//
 	'result',
 
