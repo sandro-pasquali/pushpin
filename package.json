@@ -1,7 +1,7 @@
 {
   "name": "pushpin",
-  "version": "1.0.1",
-  "description": "Harness TAP and report parse events",
+  "version": "2.0.0",
+  "description": "Harness TAP output",
   "engines": {
     "node": ">=4"
   },
@@ -14,7 +14,6 @@
   "dependencies": {
     "duplexer2": "^0.1.4",
     "lodash": "^3.10.1",
-    "tap-out": "^1.4.1",
     "through2": "^2.0.0"
   },
   "repository": {

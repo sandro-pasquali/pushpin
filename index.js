@@ -2,16 +2,9 @@
 
 var util = require('util');
 var duplexer = require('duplexer2');
-var out = require('through2')();
-var parser = require('tap-out')();
+var through2 = require('through2');
+var out = through2({ objectMode: true });
 var _ = require('lodash');
-
-var push = function(tapObj) {	
-	transformers[tapObj.type].forEach(function(fn) {
-		var res = fn(tapObj);
-		out.push(typeof res === 'undefined' ? '.' : res);
-	});
-};
 
 // All tap-out parse events. See comments below.
 //
@@ -32,9 +25,9 @@ var events = [
 	// count - the number of tests related to this result
 	//
 	'result',
-	
+
 	// When a test is set up
-	// 
+	//
 	// type - value will always be test
 	// name - name of the test
 	// raw - the raw output before it was parsed
@@ -48,30 +41,40 @@ var events = [
 	'version'
 ];
 
-// Create default transformer collection for all events. 
+// Create default transformer collection for all events.
 // This default is replaced by the first call to #transform
 //
 var transformers = events.reduce(function(coll, ev) {
 
-	coll[ev] = coll[ev] || [];
-	coll[ev].push(function $baseTransformer(tapObj) {
-	
+	coll[ev] = function $baseTransformer(tapObj) {
+
 		// Just send back the raw TAP output
 		//
 		return util.format('\nTAP> %s\n', tapObj.raw);
-	});
-	
+	};
+
 	return coll;
-	
+
 }, {});
 
-// Bind all parse events to #push. Each event emits an object as
-// described in the comments. #push does the work of catching, 
-// transforming, and pushing back into the stream. 
+
+// This is the stream receiver for @tape objects
 //
-events.forEach(function(event) {
-	parser.on(event, push);
-});
+var parser = through2.obj(function(tapObj, enc, callback) {
+
+	var trans = transformers[tapObj.type];
+	var res;
+
+	if(!trans) {
+		return callback()
+	}
+
+	res = trans(tapObj);
+
+	out.push(typeof res === 'undefined' ? '.' : res);
+
+	callback()
+})
 
 // Prime the output pump by creating a newline.
 //
@@ -82,42 +85,34 @@ module.exports = function(cfg) {
 	// It's ok to send no configuration.
 	//
 	cfg = typeof cfg === 'undefined' ? {} : cfg;
-	
-	var stream = duplexer(parser, out);
-	
+
+	// Note that we are expecting objects from @tape output
+	//
+	var stream = duplexer({
+		writableObjectMode: true
+	}, parser, out);
+
 	if(!_.isPlainObject(cfg)) {
 		throw new Error('pushpin #configure expects an Object');
 	}
-	
+
 	Object.keys(cfg).forEach(function(event) {
-	
+
 		if(!~events.indexOf(event)) {
 			throw new Error('Invalid event name received by pushpin -> ' + event);
 		}
-		
-		// Make into Array if not. This allows a single
-		// Function to be passed, OR an Array of functions.
-		//
-		if(!_.isArray(cfg[event])) {
-			cfg[event] = [cfg[event]];
+
+		if(!_.isFunction(cfg[event])) {
+			throw new Error('pushpin expected a Function. Received -> ' + fn + ' for event -> ' + event);
 		}
-		
-		cfg[event].forEach(function(fn) {
-	
-			if(!_.isFunction(fn)) {
-				throw new Error('pushpin expects a Function or Array of Functions. Received -> ' + fn + ' for event -> ' + event);
-			}
-			
-			// Remove default transformer when any userland transformer 
-			// is added. 
-			//
-			if(transformers[event][0].name === '$baseTransformer') {
-				transformers[event].shift();
-			}
-						
-			transformers[event].push(fn);
-		});
+
+		transformers[event] = cfg[event];
 	});
-	
-	return stream;
+
+	return {
+		stream: stream,
+		finish: function(resObj) {
+			out.push(transformers['result'](resObj));
+		}
+	};
 };
